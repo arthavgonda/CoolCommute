@@ -1,0 +1,11 @@
+import { StyleSheet, View } from 'react-native';
+
+export const GlassSurface = (_: { active?: boolean }) => <View style={styles.surface as never} />;
+
+const styles = StyleSheet.create({
+  surface: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundImage: 'linear-gradient(138deg, rgba(239, 237, 222, 0.15) 0%, rgba(119, 132, 108, 0.09) 38%, rgba(239, 237, 222, 0.035) 100%), linear-gradient(180deg, rgba(255, 255, 246, 0.075) 0%, rgba(255, 255, 246, 0.012) 28%, rgba(255, 255, 246, 0) 52%)',
+    pointerEvents: 'none',
+  } as never,
+});

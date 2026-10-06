@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "CoolCommute",
+    "slug": "coolcommute-onboarding",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": { "image": "./assets/splash.png", "resizeMode": "contain", "backgroundColor": "#101512" },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": { "NSLocationWhenInUseUsageDescription": "CoolCommute uses your location to match heat and air quality to your area." }
+    },
+    "android": {
+      "package": "com.coolcommute.app",
+      "adaptiveIcon": { "foregroundImage": "./assets/adaptive-icon.png", "backgroundColor": "#101512" },
+      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"]
+    },
+    "web": { "bundler": "metro", "favicon": "./assets/favicon.png" },
+    "plugins": [["expo-location", { "locationWhenInUsePermission": "CoolCommute uses your location to match heat and air quality to your area.", "locationAlwaysAndWhenInUsePermission": "CoolCommute can update your commute area in the background when you enable background tracking. Location updates stay on this device.", "isIosBackgroundLocationEnabled": true, "isAndroidBackgroundLocationEnabled": true, "isAndroidForegroundServiceEnabled": true }]]
+  }
+}
