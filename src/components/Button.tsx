@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { colors, radius } from '../theme';
+import { isDarkTheme } from '../theme';
 type Props = { label: string; onPress: () => void; disabled?: boolean; ghost?: boolean; compact?: boolean };
 export const Button = ({ label, onPress, disabled, ghost, compact }: Props) => {
   const scale = useSharedValue(1);
@@ -30,7 +31,7 @@ const styles = StyleSheet.create({
   compact: { height: 44, borderWidth: 1, paddingHorizontal: 8 },
   compactLabel: { fontSize: 14 },
   ghost: { backgroundColor: 'transparent' },
-  disabled: { backgroundColor: 'rgba(239, 237, 222, 0.06)', borderColor: 'rgba(239, 237, 222, 0.11)' },
+  disabled: { backgroundColor: isDarkTheme ? 'rgba(239, 237, 222, 0.06)' : 'rgba(139, 83, 101, 0.06)', borderColor: isDarkTheme ? 'rgba(239, 237, 222, 0.11)' : 'rgba(139, 83, 101, 0.11)' },
   label: { color: colors.buttonText, fontSize: 16, fontWeight: '600' },
   ghostLabel: { color: colors.accent },
   disabledLabel: { color: colors.textDim },

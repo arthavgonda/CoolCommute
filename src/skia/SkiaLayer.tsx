@@ -19,6 +19,7 @@ import {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
+import { isDarkTheme } from '../theme';
 const SIZE = 56;
 const STROKE = 6;
 type Props = { loader: SharedValue<number> };
@@ -42,13 +43,13 @@ const SkiaLayer = ({ loader }: Props) => {
       <Rect x={0} y={0} width={width} height={height}>
         <RadialGradient
           c={vec(width / 2, height / 2)}
-          r={Math.min(width, height) / 2}
-          colors={['#252d24', '#101512']}
+          r={Math.min(width, height) * (isDarkTheme ? 0.5 : 0.4)}
+          colors={isDarkTheme ? ['#252d24', '#101512'] : ['#f2dce4', '#ffffff']}
         />
-        <Blur blur={100} />
+        <Blur blur={isDarkTheme ? 100 : 28} />
       </Rect>
       <Group origin={vec(cx, cy)} transform={transform} opacity={loader}>
-        <Path path={circle} color="#c5d18a" style="stroke" strokeWidth={STROKE} start={start} end={1} strokeCap="round" />
+        <Path path={circle} color={isDarkTheme ? '#c5d18a' : '#c9869b'} style="stroke" strokeWidth={STROKE} start={start} end={1} strokeCap="round" />
       </Group>
     </Canvas>
   );

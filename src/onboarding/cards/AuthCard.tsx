@@ -11,7 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { confirmSignUp, resendConfirmationCode, signIn, signUp } from '../../auth/cognito';
 import { Button } from '../../components/Button';
-import { colors } from '../../theme';
+import { colors, isDarkTheme } from '../../theme';
 import { t } from '../../ui/type';
 import { VerificationCodeInput } from './VerificationCodeInput';
 type Mode = 'signup' | 'signin' | 'confirm';
@@ -174,8 +174,8 @@ export const AuthCard = ({ onSuccess }: { onSuccess: (idToken: string) => void |
 const styles = StyleSheet.create({
   verifyIntro: { marginTop: 8, marginBottom: 22 },
   verifyDescription: { color: colors.textDim, fontSize: 15, lineHeight: 21 },
-  verifyEmail: { alignSelf: 'flex-start', maxWidth: '100%', overflow: 'hidden', color: colors.text, fontSize: 14, fontWeight: '600', marginTop: 6, paddingHorizontal: 11, paddingVertical: 6, borderRadius: 12, backgroundColor: 'rgba(239,237,222,0.07)', borderWidth: 1, borderColor: 'rgba(239,237,222,0.1)' },
-  authNotice: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 15, paddingHorizontal: 11, paddingVertical: 9, borderRadius: 12, backgroundColor: 'rgba(197,209,138,0.08)', borderWidth: 1, borderColor: 'rgba(197,209,138,0.15)' },
+  verifyEmail: { alignSelf: 'flex-start', maxWidth: '100%', overflow: 'hidden', color: colors.text, fontSize: 14, fontWeight: '600', marginTop: 6, paddingHorizontal: 11, paddingVertical: 6, borderRadius: 12, backgroundColor: isDarkTheme ? 'rgba(239,237,222,0.07)' : colors.glass, borderWidth: 1, borderColor: isDarkTheme ? 'rgba(239,237,222,0.1)' : colors.glassBorder },
+  authNotice: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 15, paddingHorizontal: 11, paddingVertical: 9, borderRadius: 12, backgroundColor: colors.accentSoft, borderWidth: 1, borderColor: isDarkTheme ? 'rgba(197,209,138,0.15)' : colors.glassBorder },
   noticeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.accent },
   authNoticeText: { flex: 1, color: colors.accent, fontSize: 12, lineHeight: 17 },
 });

@@ -9,10 +9,29 @@ export const LOTTIE = {
   locationAsk: require('../../assets/lottie/location-ask.json'),
   locationDenied: require('../../assets/lottie/location-denied.json'),
   locationGranted: require('../../assets/lottie/location-granted.json'),
+  walking: require('../../assets/lottie/walking.json'),
+  metro: require('../../assets/lottie/metro.json'),
+  bus: require('../../assets/lottie/bus.json'),
+  backend404: require('../../assets/lottie/404error.json'),
+  sorry: require('../../assets/lottie/sorry.json'),
 };
-export const LottieSlot = ({ source, size = 160, loop = true }: { source: Source; size?: number; loop?: boolean }) => (
-  <LottieView source={source} autoPlay loop={loop} style={{ width: size, height: size }} />
-);
+export const LottieSlot = ({ source, size = 160, loop = true, loopSegment }: { source: Source; size?: number; loop?: boolean; loopSegment?: [number, number] }) => {
+  const animation = useRef<LottieView>(null);
+  const playSegment = () => {
+    if (loopSegment) animation.current?.play(loopSegment[0], loopSegment[1]);
+  };
+  return (
+    <LottieView
+      ref={animation}
+      source={source}
+      autoPlay={!loopSegment}
+      loop={loopSegment ? false : loop}
+      onAnimationLoaded={playSegment}
+      onAnimationFinish={playSegment}
+      style={{ width: size, height: size }}
+    />
+  );
+};
 const clamp01 = (v: number) => {
   'worklet';
   return Math.min(Math.max(v, 0), 1);

@@ -1,6 +1,7 @@
 import { readJson, removeJson, writeJson } from './localStore';
 import { Platform } from 'react-native';
 import { getCurrentUsername } from '../auth/cognito';
+import { clearBackendFailure, reportBackendFailure } from './backendFailure';
 export type Level = 'low' | 'medium' | 'high';
 export type Tradeoff = 'time' | 'exposure' | 'balanced';
 export type Place = { lat: number; lng: number };
@@ -33,7 +34,11 @@ export const removeProfile = async () => {
 const API = process.env.EXPO_PUBLIC_API_URL;
 const call = async (method: string, token: string | null, body?: Profile) => {
   const url = API ? `${API.replace(/\/+$/, '')}/profile` : null;
-  if (!url || !token) {
+  if (!token) {
+    throw new Error('Profile sync is not configured. Check the API URL and sign-in session.');
+  }
+  if (!url) {
+    reportBackendFailure({ kind: 'network', retry: () => call(method, token, body) });
     throw new Error('Profile sync is not configured. Check the API URL and sign-in session.');
   }
   let res: Response;
@@ -44,6 +49,7 @@ const call = async (method: string, token: string | null, body?: Profile) => {
       body: body ? JSON.stringify(body) : undefined,
     });
   } catch (error) {
+    reportBackendFailure({ kind: 'network', retry: () => call(method, token, body) });
     throw new Error(Platform.OS === 'web'
       ? 'Could not reach the profile API. Check API Gateway CORS, OPTIONS, and route configuration.'
       : 'Could not reach the profile API. Check the network and API Gateway route.');
@@ -60,13 +66,23 @@ const call = async (method: string, token: string | null, body?: Profile) => {
   } catch {
     diagnosticBody = responseBody.slice(0, 200);
   }
-  if (!res.ok) throw new Error(`Profile API returned ${res.status}${diagnosticBody ? `: ${diagnosticBody.slice(0, 300)}` : ''}`);
+  if (!res.ok) {
+    const kind = res.status === 404 ? 'not-found' : res.status >= 500 ? 'server' : 'http';
+    reportBackendFailure({ kind, status: res.status, retry: () => call(method, token, body) });
+    throw new Error(`Profile API returned ${res.status}${diagnosticBody ? `: ${diagnosticBody.slice(0, 300)}` : ''}`);
+  }
+  clearBackendFailure();
   return res;
 };
 export const uploadProfile = (token: string | null, p: Profile) => call('PUT', token, p);
 export const downloadProfile = async (token: string | null): Promise<Profile | null> => {
   const response = await call('GET', token);
-  const payload = await response.json() as { profile?: Profile | null };
-  return payload.profile ?? null;
+  try {
+    const payload = await response.json() as { profile?: Profile | null };
+    return payload.profile ?? null;
+  } catch {
+    reportBackendFailure({ kind: 'invalid-response', retry: () => downloadProfile(token) });
+    throw new Error('The profile service returned an invalid response.');
+  }
 };
 export const deleteRemoteProfile = (token: string | null) => call('DELETE', token);

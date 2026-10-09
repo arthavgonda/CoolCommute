@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import Animated, { Easing, FlipInXDown, FlipOutXDown, interpolate, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import { colors, radius } from '../../theme';
+import { colors, isDarkTheme, radius } from '../../theme';
 
 const CODE_LENGTH = 6;
 
@@ -55,7 +55,7 @@ export const VerificationCodeInput = ({ value, onChange, disabled }: { value: st
 
 const styles = StyleSheet.create({
   root: { width: '100%', alignItems: 'center' },
-  face: { width: 54, height: 54, borderRadius: 16, marginBottom: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#17251c', borderWidth: 1, borderColor: 'rgba(222,231,210,0.15)' },
+  face: { width: 54, height: 54, borderRadius: 16, marginBottom: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: isDarkTheme ? '#17251c' : colors.glass, borderWidth: 1, borderColor: isDarkTheme ? 'rgba(222,231,210,0.15)' : colors.glassBorder },
   brows: { flexDirection: 'row', gap: 11, marginBottom: 2 },
   brow: { width: 8, height: 2, borderRadius: 1, backgroundColor: colors.accent },
   eyes: { flexDirection: 'row', gap: 13 },
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   mouth: { width: 12, height: 4, borderBottomWidth: 1.5, borderColor: colors.text, borderRadius: 6 },
   mouthComplete: { height: 7, borderBottomWidth: 1.5, borderTopWidth: 0 },
   codeRow: { width: '100%', flexDirection: 'row', justifyContent: 'center', gap: 7 },
-  digitCell: { flex: 1, maxWidth: 50, minHeight: 54, aspectRatio: 0.94, alignItems: 'center', justifyContent: 'center', borderRadius: radius.input, borderWidth: 1.5, borderColor: colors.glassBorder, backgroundColor: 'rgba(15,24,18,0.55)' },
+  digitCell: { flex: 1, maxWidth: 50, minHeight: 54, aspectRatio: 0.94, alignItems: 'center', justifyContent: 'center', borderRadius: radius.input, borderWidth: 1.5, borderColor: colors.glassBorder, backgroundColor: isDarkTheme ? 'rgba(15,24,18,0.55)' : '#fffafb' },
   digitCellActive: { borderColor: colors.accent, backgroundColor: colors.accentSoft },
   digitCellFilled: { borderColor: 'rgba(197,209,138,0.48)' },
   digit: { color: colors.text, fontSize: 22, fontWeight: '600' },

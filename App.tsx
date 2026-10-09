@@ -6,13 +6,16 @@ import { StatusBar } from 'expo-status-bar';
 import Animated, { FadeIn, FadeOut, useSharedValue } from 'react-native-reanimated';
 import { getIdToken } from './src/auth/cognito';
 import Backdrop from './src/components/Backdrop';
+import { BackendErrorScreen } from './src/components/BackendErrorScreen';
 import { loadProfile } from './src/data/profile';
+import { BackendFailure, subscribeBackendFailure } from './src/data/backendFailure';
 import { Home } from './src/home/Home';
 import { Onboarding } from './src/onboarding/Onboarding';
-import { colors } from './src/theme';
+import { colors, isDarkTheme } from './src/theme';
 type Route = 'boot' | 'onboarding' | 'home';
 export default function App() {
   const [route, setRoute] = useState<Route>('boot');
+  const [backendFailure, setBackendFailure] = useState<BackendFailure | null>(null);
   const loader = useSharedValue(0);
   useEffect(() => {
     if (Platform.OS !== 'web') return;
@@ -22,6 +25,7 @@ export default function App() {
     document.head.appendChild(style);
     return () => style.remove();
   }, []);
+  useEffect(() => subscribeBackendFailure(setBackendFailure), []);
   useEffect(() => {
     (async () => {
       const [token, profile] = await Promise.all([getIdToken().catch(() => null), loadProfile()]);
@@ -30,18 +34,20 @@ export default function App() {
   }, []);
   return (
     <View style={styles.root}>
-      <StatusBar style="light" />
-      <Backdrop loader={loader} />
-      {route === 'onboarding' && (
-        <Animated.View key="onboarding" style={StyleSheet.absoluteFill} exiting={FadeOut.duration(400)}>
-          <Onboarding loader={loader} onDone={() => setRoute('home')} />
-        </Animated.View>
-      )}
-      {route === 'home' && (
-        <Animated.View key="home" style={StyleSheet.absoluteFill} entering={FadeIn.duration(600)}>
-          <Home onSignedOut={() => setRoute('onboarding')} />
-        </Animated.View>
-      )}
+      <StatusBar style={backendFailure ? 'dark' : isDarkTheme ? 'light' : 'dark'} backgroundColor={backendFailure ? '#ffffff' : colors.bg} />
+      {backendFailure ? <BackendErrorScreen key={backendFailure.kind + backendFailure.status} failure={backendFailure} /> : <>
+        <Backdrop loader={loader} />
+        {route === 'onboarding' && (
+          <Animated.View key="onboarding" style={StyleSheet.absoluteFill} exiting={FadeOut.duration(400)}>
+            <Onboarding loader={loader} onDone={() => setRoute('home')} />
+          </Animated.View>
+        )}
+        {route === 'home' && (
+          <Animated.View key="home" style={StyleSheet.absoluteFill} entering={FadeIn.duration(600)}>
+            <Home onSignedOut={() => setRoute('onboarding')} />
+          </Animated.View>
+        )}
+      </>}
     </View>
   );
 }

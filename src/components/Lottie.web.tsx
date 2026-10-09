@@ -12,21 +12,37 @@ export const LOTTIE = {
   locationAsk: require('../../assets/lottie/location-ask.json'),
   locationDenied: require('../../assets/lottie/location-denied.json'),
   locationGranted: require('../../assets/lottie/location-granted.json'),
+  walking: require('../../assets/lottie/walking.json'),
+  metro: require('../../assets/lottie/metro.json'),
+  bus: require('../../assets/lottie/bus.json'),
+  backend404: require('../../assets/lottie/404error.json'),
+  sorry: require('../../assets/lottie/sorry.json'),
 };
 export const LottieSlot = ({
   source,
   size = 160,
   loop = true,
+  loopSegment,
 }: {
   source: any;
   size?: number;
   loop?: boolean;
+  loopSegment?: [number, number];
 }) => {
+  const animation = useRef<AnimationItem | null>(null);
+  const playSegment = useCallback((event: PlayerEvent) => {
+    if (!loopSegment || !animation.current) return;
+    if (event === PlayerEvent.Ready || event === PlayerEvent.Complete) {
+      animation.current.playSegments(loopSegment, true);
+    }
+  }, [loopSegment]);
   return (
     <View style={{ width: size, height: size }}>
       <Player
-        autoplay
-        loop={loop}
+        lottieRef={item => { animation.current = item; }}
+        autoplay={!loopSegment}
+        loop={loopSegment ? false : loop}
+        onEvent={playSegment}
         src={source}
         style={{
           width: size,
