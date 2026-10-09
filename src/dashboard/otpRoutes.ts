@@ -263,7 +263,6 @@ const normalizePoints = (value: unknown): [number, number][] => {
 export const getScoredRoutes = async (from: Place, to: Place, signal?: AbortSignal): Promise<ScoredRoutesResult> => {
   if (!ROUTES_URL) throw new Error('Route scoring is not configured. Set EXPO_PUBLIC_ROUTES_URL and restart the app.');
   if (!ROUTES_KEY) throw new Error('Route scoring key is not configured. Set EXPO_PUBLIC_ROUTES_KEY and restart the app.');
-  if (__DEV__) console.log('[Routes API] Request starting', { endpoint: ROUTES_URL, origin: from, destination: to, priority: 'balanced' });
   const startedAt = Date.now();
   let response: Response;
   try {
@@ -279,20 +278,16 @@ export const getScoredRoutes = async (from: Place, to: Place, signal?: AbortSign
     });
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') throw error;
-    if (__DEV__) console.error('[Routes API] Network request failed', error);
     throw new Error('Could not connect to the route service. Check your connection and try again.');
   }
-  if (__DEV__) console.log('[Routes API] HTTP response', { status: response.status, elapsedMs: Date.now() - startedAt });
   if (!response.ok) {
     const body = await response.text().catch(() => '');
-    if (__DEV__) console.error('[Routes API] Non-success response', { status: response.status, statusText: response.statusText, body });
     throw new Error(`Route service returned ${response.status}.`);
   }
 
   const payload = await response.json() as ScoredRoutesResponse;
   const sourceRoutes = payload.routes ?? [];
   if (!sourceRoutes.length) {
-    if (__DEV__) console.warn('[Routes API] No routes returned', { message: payload.message, error: payload.error });
     throw new Error(payload.message || payload.error || 'No transit routes were found for this trip.');
   }
 
@@ -332,21 +327,6 @@ export const getScoredRoutes = async (from: Place, to: Place, signal?: AbortSign
       tags: source.tags ?? [],
     };
   }).filter(route => route.coordinates.length >= 2);
-  if (__DEV__) console.log('[Routes API] Parsed scored routes', {
-    elapsedMs: Date.now() - startedAt,
-    returnedRoutes: sourceRoutes.length,
-    drawableRoutes: routes.length,
-    routes: routes.map((route, index) => ({
-      index,
-      mode: route.label,
-      durationMinutes: Math.round(route.durationSeconds / 60),
-      distanceMeters: Math.round(route.distanceMeters),
-      score: route.score,
-      tags: route.tags,
-      legCount: route.legs.length,
-      pointCount: route.coordinates.length,
-    })),
-  });
   return { routes, advice: payload.advice ?? { level: 'ok', noTransit: false, reasons: [], wait: null, rides: [] } };
 };
 
@@ -354,7 +334,6 @@ export const getRideQuote = async (from: Place, to: Place, signal?: AbortSignal)
   const quoteUrl = ROUTES_URL.replace(/\/routes\/?$/, '/ride-quote');
   if (!quoteUrl || quoteUrl === ROUTES_URL) throw new Error('Rapido fare quotes are not configured on the route service.');
   const startedAt = Date.now();
-  if (__DEV__) console.log('[Ride quote] Request starting', { endpoint: quoteUrl, from, to });
   let response: Response;
   try {
     response = await fetch(quoteUrl, {
@@ -365,13 +344,10 @@ export const getRideQuote = async (from: Place, to: Place, signal?: AbortSignal)
     });
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') throw error;
-    if (__DEV__) console.error('[Ride quote] Network request failed', error);
     throw new Error('Could not retrieve Rapido fare estimates.');
   }
-  if (__DEV__) console.log('[Ride quote] HTTP response', { status: response.status, elapsedMs: Date.now() - startedAt });
   if (!response.ok) {
-    const body = await response.text().catch(() => '');
-    if (__DEV__) console.error('[Ride quote] Non-success response', { status: response.status, body });
+    await response.text().catch(() => '');
     throw new Error(`Rapido fare service returned ${response.status}.`);
   }
   return await response.json() as RideQuote;

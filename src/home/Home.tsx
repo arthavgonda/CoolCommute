@@ -204,9 +204,15 @@ export const Home = ({ onSignedOut }: { onSignedOut: () => void }) => {
     const usernameInitial = getCurrentUsername()?.trim().charAt(0).toUpperCase();
     setInitial(usernameInitial && /[A-Z]/.test(usernameInitial) ? usernameInitial : 'Y');
     try {
-      const locationPermission = await Location.getForegroundPermissionsAsync();
-      setPermission(locationPermission.status);
-      setPermissionCanAskAgain(locationPermission.canAskAgain);
+      if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.permissions) {
+        const result = await navigator.permissions.query({ name: 'geolocation' });
+        setPermission(result.state === 'granted' ? 'granted' : result.state === 'denied' ? 'denied' : 'undetermined');
+        setPermissionCanAskAgain(result.state !== 'denied');
+      } else {
+        const locationPermission = await Location.getForegroundPermissionsAsync();
+        setPermission(locationPermission.status);
+        setPermissionCanAskAgain(locationPermission.canAskAgain);
+      }
     } catch {
       setPermission('undetermined');
     }
@@ -404,8 +410,7 @@ export const Home = ({ onSignedOut }: { onSignedOut: () => void }) => {
   const openRapido = async (url: string) => {
     try {
       await Linking.openURL(url);
-    } catch (error) {
-      if (__DEV__) console.error('[Rapido] Could not open ride link', error);
+    } catch {
       showNote('Could not open Rapido. Try again in a moment.', true);
     }
   };
@@ -421,7 +426,7 @@ export const Home = ({ onSignedOut }: { onSignedOut: () => void }) => {
     setRideQuotes([]);
     setRideQuotesLoading(false);
     setRoutesLoading(true);
-    if (__DEV__) console.log('[Routes] Planning destination', { destinationLabel: to.label, origin: from, destination: to.place });
+
     try {
       const result = await getScoredRoutes(from, to.place, controller.signal);
       if (requestId !== routeRequestRef.current) return;
@@ -438,8 +443,7 @@ export const Home = ({ onSignedOut }: { onSignedOut: () => void }) => {
           { lat: ride.pickup.lat, lng: ride.pickup.lon },
           to.place,
           controller.signal,
-        ).catch(error => {
-          if (!controller.signal.aborted && __DEV__) console.error('[Ride quote] Failed', { kind: ride.kind, pickup: ride.pickup, error });
+        ).catch(() => {
           return null;
         }))).then(quotes => {
           if (requestId === routeRequestRef.current) setRideQuotes(quotes);
@@ -449,7 +453,6 @@ export const Home = ({ onSignedOut }: { onSignedOut: () => void }) => {
       }
     } catch (error) {
       if (controller.signal.aborted || requestId !== routeRequestRef.current) return;
-      if (__DEV__) console.error('[Routes] Route planning failed', error);
       showNote((error as Error).message || 'Could not find transit routes.', true);
     } finally {
       if (requestId === routeRequestRef.current) setRoutesLoading(false);
@@ -472,7 +475,6 @@ export const Home = ({ onSignedOut }: { onSignedOut: () => void }) => {
       pendingRouteRef.current = result;
       setRoutesLoading(false);
       if (mapLocation && !isInsideRouteServiceArea(mapLocation)) setDemoOriginDialogOpen(true);
-      if (__DEV__) console.log('[Routes] Waiting for a route origin inside the Delhi service area', { destinationLabel: result.label, currentLocation: mapLocation });
     }
   };
 
@@ -488,15 +490,10 @@ export const Home = ({ onSignedOut }: { onSignedOut: () => void }) => {
       pendingRouteRef.current = null;
       void loadRoutes(result.place, pending);
     }
-    if (__DEV__) console.log('[Routes] Delhi demo origin selected', result);
   };
 
   const chooseRoute = useCallback((index: number) => {
     setSelectedRoute(index);
-    if (__DEV__) {
-      const route = routes[index];
-      console.log('[Routes] Scored route selected', route ? { index, id: route.id, mode: route.label, durationSeconds: route.durationSeconds, score: route.score, tags: route.tags, legs: route.legs.map(leg => ({ mode: leg.mode, line: leg.line, from: leg.from, to: leg.to, durationSeconds: leg.durationSeconds, distanceMeters: leg.distanceMeters })) } : { index });
-    }
   }, [routes]);
 
   const saveHomeLocation = async (place: NonNullable<Profile['location']>, label: string, accuracy: number) => {
@@ -562,10 +559,8 @@ export const Home = ({ onSignedOut }: { onSignedOut: () => void }) => {
   const performSearch = async () => {
     setBusy(true);
     showNote('');
-    if (__DEV__) console.log('[Search] Resolving destination', { query: query.trim(), proximity: mapLocation });
     try {
       const result = await searchLocation(query, mapLocation ?? undefined);
-      if (__DEV__) console.log('[Search] Destination resolved', result);
       planToDestination(result);
       setSuggestions([]);
       setNote('');
@@ -579,7 +574,7 @@ export const Home = ({ onSignedOut }: { onSignedOut: () => void }) => {
 
   const submitSearch = () => {
     if (!query.trim() || busy) return;
-    if (permission !== 'granted' && !__DEV__) {
+    if (permission !== 'granted' && !__DEV__ && Platform.OS !== 'web') {
       openLocationAccess('search');
       return;
     }

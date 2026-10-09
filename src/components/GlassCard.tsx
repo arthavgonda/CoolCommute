@@ -32,16 +32,6 @@ export const GlassCard = ({ index, active, step, orbit, finale, children }: Prop
   const { screenW, screenH, width, height } = useCardSize();
   useEffect(() => {
     if (!active || Platform.OS !== 'web') return;
-    console.log('[Onboarding glass] active card style', {
-      theme: isDarkTheme ? 'dark' : 'light',
-      backdropFilter: 'blur(5px)',
-      surfaceBase: 'transparent',
-      surfaceGradient: isDarkTheme
-        ? 'linear-gradient(138deg, rgba(239,237,222,0.15) 0%, rgba(119,132,108,0.09) 38%, rgba(239,237,222,0.035) 100%), linear-gradient(180deg, rgba(255,255,246,0.075) 0%, rgba(255,255,246,0.012) 28%, rgba(255,255,246,0) 52%)'
-        : 'linear-gradient(138deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.09) 54%, rgba(255,255,255,0.035) 100%), linear-gradient(180deg, rgba(255,255,255,0.075) 0%, rgba(255,255,255,0.012) 38%, rgba(255,255,255,0) 52%)',
-      active,
-      index,
-    });
   }, [active, index]);
   const rootStyle = useAnimatedStyle(() => {
     const p = step.value - index;
